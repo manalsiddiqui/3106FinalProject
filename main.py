@@ -1,86 +1,119 @@
-# This is a sample Python script.
+import random
+full_deck = ["2","2","2","2","3","3","3","3","4","4","4","4","5","5","5","5","6","6","6","6",
+             "7","7","7","7","8","8","8","8","9","9","9","9","10","10","10","10",
+             "J","J","J","J","Q","Q","Q","Q","K","K","K","K","A","A","A","A"]
+card_deck = full_deck.copy()
+random.shuffle(card_deck)
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+"""
+dealer_hand = [card_deck.pop(0)]
+player_hand = [card_deck.pop(0)]
+dealer_hand.append(card_deck.pop(0))
+player_hand.append(card_deck.pop(0))
+"""
 
 value = 0
 score = 0
-values
-def max_value(state):
-    if state is terminal:
-        return score(state)
+countHits = 0
 
-    values = []
-    for a in get_actions(state):
-        v = min_value(state.get_child(a))
-        values.append(v)
+# stateArr = [player_hand,dealer_hand]
 
-    value = max(values)
-    action = argmax(values)
+def get_card_value(card):
+    try:
+        card_value = int(card)
+    except:
+        if card == "J" or card == "Q" or card == "K":
+            card_value = 10
+        else:
+            card_value = 11
 
-    return value, action
-
-def min_value(state):
-    if state is terminal:
-        return score(state)
-
-    values = []
-    for a in get_actions(state):
-        v = max_value(state.get_child(a))
-        values.append(v)
-
-    value = min(values)
-    action = argmin(values)
-
-    return value, action
+    return card_value
 
 
-def max_value_alphabeta(state, alpha, beta):
-    if state is terminal:
-        return score(state)
 
-    values = []
-    for a in get_actions(state):
-        v = min_value_alphabeta(state.get_child(a), alpha, beta)
-        values.append(v)
-
-    if v >= beta:
-        return v
-    alpha = max(alpha, v)
-
-    value = max(values)
-    action = argmax(values)
-
-    return value, action
+def score(stateArr):
+    if stateArr[0] > stateArr[1]:
+        return 1
+    elif stateArr[0] < stateArr[1]:
+        return 0
+    else:
+        return 0.5
 
 
-def min_value_alphabeta(state, alpha, beta):
-    if state is terminal:
-        return score(state)
 
-    values = []
-    for a in get_actions(state):
-        v = max_value_alphabeta(state.get_child(a), alpha, beta)
-        values.append(v)
+def calculateTotal(handArr):
+    total = 0
+    numAces = 0
+    for card in handArr:
+        total += get_card_value(card)
+        if card == "A":
+            numAces += 1
 
-    if v <= beta:
-        return v
-    alpha = min(alpha, v)
+    for i in range(numAces):
+        if total > 21:
+            total -= 10
 
-    value = min(values)
-    action = argmin(values)
+    return total
 
-    return value, action
+def startAlgorithm(stateArr):
+    hit_return = placeOfBattle(stateArr, "hit")
+    print(hit_return[0])
+    print("\n")
+    stand_return = placeOfBattle(stateArr, "stand")
+    print(stand_return[0])
+    if hit_return[0] > stand_return[0]:
+        return hit_return
+    else:
+        return stand_return
 
+
+def chanceOfLoss(hand):
+    deck = ["2","2", "2", "2", "3", "3", "3", "3", "4", "4", "4", "4", "5", "5", "5", "5", "6", "6", "6", "6",
+                 "7", "7", "7", "7", "8", "8", "8", "8", "9", "9", "9", "9", "10", "10", "10", "10",
+                 "J", "J", "J", "J", "Q", "Q", "Q", "Q", "K", "K", "K", "K", "A", "A", "A", "A"]
+    for card in hand:
+        deck.remove(card)
+
+    moreThan = 0
+
+    for card in deck:
+        tempHand = hand.copy()
+        tempHand.append(card)
+        tots = calculateTotal(tempHand)
+        if tots > 21:
+            moreThan += 1
+
+    return moreThan / len(deck)
+
+def placeOfBattle(stateArr, action):
+    # if countHits == 2:  # if terminal
+    #    return score(stateArr), []
+    # figure out the chance of each option
+    # if max(% * placeOfBattle(stateArr), )
+
+    if action == "hit":
+        print("hit")
+        chanceOfContinuing = 1 - chanceOfLoss(stateArr[0])
+        return_value = placeOfBattle(stateArr, "stand")
+        return return_value[0] * chanceOfContinuing, ["hit"] + return_value[1]
+
+
+    else:
+        print("stand")
+        if calculateTotal(stateArr[1]) >= 17:
+            print("dealer stand")
+            return score(stateArr), ["stand","stand"]
+        else:
+            print("dealer hit")
+            chanceOfLosing = chanceOfLoss(stateArr[1])
+            return max((1 - chanceOfLosing) * score(stateArr), chanceOfLosing * 1), ["stand","hit"]
+
+
+
+
+
+
+
+
+
+print(startAlgorithm([["8","6"], ["4","10"]]))
