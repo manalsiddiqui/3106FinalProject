@@ -13,7 +13,7 @@ player_hand.append(card_deck.pop(0))
 """
 
 # stateArr = [player_hand,dealer_hand]
-
+#get the value of the card, from string value
 def get_card_value(card):
     try:
         card_value = int(card)
@@ -28,31 +28,39 @@ def get_card_value(card):
 
 
 def score(stateArr):
+    player_total = calculateTotal(stateArr[0])
+    dealer_total = calculateTotal(stateArr[1])
     if len(stateArr[0]) == 2 and len(stateArr[1]) == 2:  # we both stand
-        if calculateTotal(stateArr[0]) > calculateTotal(stateArr[1]):
+        if player_total > dealer_total:
             return 1
-        elif calculateTotal(stateArr[0]) < calculateTotal(stateArr[1]):
+        elif player_total < dealer_total:
             return 0
         else:
             return 0.5
     elif len(stateArr[0]) == 3 and len(stateArr[1]) == 2:  # we hit, they stand
-        highCardToWin = 21 - calculateTotal(stateArr[0])
-        pointsToWin = calculateTotal(stateArr[1]) - calculateTotal(stateArr[0])
+        highCardToWin = 21 - player_total
+        pointsToWin = dealer_total - player_total
         if pointsToWin <= 0:
             return 1
         return 1 * toWin(highCardToWin, pointsToWin, False)
     elif len(stateArr[0]) == 2 and len(stateArr[1]) == 3:  # we stand, they hit
-        highCardToWin = 21 - calculateTotal(stateArr[1])
-        pointsToWin = calculateTotal(stateArr[0]) - calculateTotal(stateArr[1])
+        highCardToWin = 21 - dealer_total
+        pointsToWin = player_total - dealer_total
         if pointsToWin <= 0:
             return 0
         return 1 * (1 - toWin(highCardToWin, pointsToWin, True))
     else:  # we hit, they hit
-        playerMax = 21 - calculateTotal(stateArr[0])
-        dealerMax = 21 - calculateTotal(stateArr[1])
-        difference = calculateTotal(stateArr[0]) - calculateTotal(stateArr[1])
 
-
+        if player_total == dealer_total:
+            return 0.5
+        elif player_total > dealer_total:
+            difference = player_total - dealer_total
+            percent = 1 - (difference / (21 - dealer_total))
+            return 1 - 0.5 * percent
+        else:
+            difference = dealer_total - player_total
+            percent = 1 - (difference / (21 - player_total))
+            return 0.5 * percent
 
 def toWin(highCardToWin, pointsToWin, includeTie):
     numerator = highCardToWin - pointsToWin
@@ -104,10 +112,12 @@ def chanceOfLoss(hand):
     deck = ["2","2", "2", "2", "3", "3", "3", "3", "4", "4", "4", "4", "5", "5", "5", "5", "6", "6", "6", "6",
                  "7", "7", "7", "7", "8", "8", "8", "8", "9", "9", "9", "9", "10", "10", "10", "10",
                  "J", "J", "J", "J", "Q", "Q", "Q", "Q", "K", "K", "K", "K", "A", "A", "A", "A"]
+    """
     for card in hand:
         if card == "R":
             continue
         deck.remove(card)
+    """
 
     moreThan = 0
 
@@ -142,9 +152,10 @@ def placeOfBattle(stateArr, action):
             print("dealer hit")
             stateArr[1].append("R")
             chanceOfLosing = chanceOfLoss(stateArr[1])
-            return max((1 - chanceOfLosing) * score(stateArr), chanceOfLosing * 1), ["stand","hit"]
+            chanceDealerWins = (1 - chanceOfLosing) * (1 - score(stateArr))
+            return 1 - chanceDealerWins, ["stand", "hit"]
 
 
 
-anArray = [["8","10"], ["6","10"]]
+anArray = [["2","10"], ["7","10"]]
 print(startAlgorithm(anArray))
